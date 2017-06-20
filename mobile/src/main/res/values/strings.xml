@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">AndroidWatchPhone</string>
-    <string name="button">Show the notification</string>
+    <string name="button">Send the notification</string>
 </resources>

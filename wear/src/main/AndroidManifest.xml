@@ -2,8 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.axyn.androidwatchphone">
 
-    <uses-feature android:name="android.hardware.type.watchstandalone"
-        android:value="true"/>
+    <uses-feature android:name="android.hardware.type.watch" />
 
     <uses-sdk
         android:minSdkVersion="20"
