@@ -13,10 +13,14 @@ import android.support.v4.app.NotificationCompat.WearableExtender;
 
 public class MainActivityWatch extends Activity {
 
+    private TextView mTextView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_watch);
-
     }
 }
+
+
+
