@@ -7,20 +7,48 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.Wearable;
+
 public class MainActivityPhone extends AppCompatActivity{
 
     //private int notificationId= 0;
     private static final String EXTRA_EVENT_ID = "extra_event_id";
+    private static final String TAG = "PhoneActivity";
+    private GoogleApiClient mGoogleApiClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_phone);
+
+        //Accessing the Wearable Data Layer
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
+                    @Override
+                    public void onConnected(Bundle connectionHint) {
+                        Log.d(TAG, "onConnected: " + connectionHint);
+                    }
+                    @Override
+                    public void onConnectionSuspended(int cause) {
+                        Log.d(TAG, "onConnectionSuspended: " + cause);
+                    }
+                })
+                .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
+                    @Override
+                    public void onConnectionFailed(ConnectionResult result) {
+                        Log.d(TAG, "onConnectionFailed: " + result);
+                    }
+                })
+                .addApi(Wearable.API)
+                .build();
 
         Button button = (Button) findViewById(R.id.button);
         button.setOnClickListener(new View.OnClickListener() {
@@ -31,34 +59,52 @@ public class MainActivityPhone extends AppCompatActivity{
         });
     }
 
-    private void sendNotification(){
-        //Create instance of NotificationCompact.Builder
-        int notificationId = 001;
-        // Build intent for notification content
-        Intent viewIntent = new Intent(this, MainActivityPhone.class);
-        viewIntent.putExtra(EXTRA_EVENT_ID, 17);
-        PendingIntent viewPendingIntent = PendingIntent.getActivity(this, 0, viewIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        NotificationCompat.Action action= new NotificationCompat.Action.Builder(
-                R.mipmap.ic_launcher, getString(R.string.wearTitle), viewPendingIntent).build();
-
-        //Building notification layout
-        Notification notification = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle("Notifications")
-                .setContentText("Hellow World !!")
-                .setContentIntent(viewPendingIntent)
-                .extend(new NotificationCompat.WearableExtender().addAction(action))
-                .build();
-
-
-        // instance of the NotificationManager service
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-
-        // Build the notification and notify it using notification manager.
-        notificationManager.notify(notificationId, notification);
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mGoogleApiClient.disconnect();
+    }
+
+    private void sendNotification(){
+        int eventId= 3;
+        if(mGoogleApiClient.isConnected()){
+            //Create instance of NotificationCompact.Builder
+            int notificationId = 001;
+            // Build intent for notification content
+            Intent viewIntent = new Intent(this, MainActivityPhone.class);
+            viewIntent.putExtra(EXTRA_EVENT_ID, eventId);
+            PendingIntent viewPendingIntent = PendingIntent.getActivity(this, 0, viewIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            NotificationCompat.Action action= new NotificationCompat.Action.Builder(
+                    R.mipmap.ic_launcher, getString(R.string.wearTitle), viewPendingIntent).build();
+
+            //Building notification layout
+            NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setContentTitle(getString(R.string.wearTitle))
+                    .setContentText("Hello World !! Tim Test")
+                    .setContentIntent(viewPendingIntent)
+                    .extend(new NotificationCompat.WearableExtender().addAction(action));
+            //.build();
+
+            // instance of the NotificationManager service
+            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+
+            // Build the notification and notify it using notification manager.
+            notificationManager.notify(notificationId, notificationBuilder.build());
+        }else{
+            Log.d(TAG, "Connection to Wearable impossible. Please reconnect Wearable.");
+        }
+    }
+
+
+    //Create a menu tab with just settings tab
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
